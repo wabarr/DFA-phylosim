@@ -46,7 +46,7 @@ lineTypes[myTree$edge[,2]<=nrow(habsForPlot)]<-ltyz[habsForPlot$Hab] #update lty
 lineTypes[is.na(lineTypes)]<-1
 
 #uncomment to save as tiff
-#tiff("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/phylogenyUSED_4habitats.tiff",width=10,height=10,units="in",res=400)
+#tiff("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/phylogenyUSED_4habitats.tiff",width=10,height=10,units="in",res=600)
 par(cex=1)
 plot(myTree,edge.width=5,edge.col=lineColz,cex=1.1,show.tip.label=T,edge.lty=lineTypes,label.offset=.15)
 par(xpd=NA)#setting xpd=NA shuts off truncation in the margins
