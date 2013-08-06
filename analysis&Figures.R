@@ -50,10 +50,12 @@ rez<-subset(rez,!is.na(dfaSuccessRate))
 #create column that uniquely identifies each DFA~simGroup combination
 rez$dfaID_simGroup<-paste(rez$dfaID,rez$simGroup)
 
+rez$bonnferroniP<-unlist(tapply(rez$overall,INDEX=rez$dfaID_simGroup, FUN=function(x) p.adjust(p=x,method="bonferroni")))
 rez$HolmBonnferroniP<-unlist(tapply(rez$overall,INDEX=rez$dfaID_simGroup, FUN=function(x) p.adjust(p=x,method="holm")))
 rez$fdrP<-unlist(tapply(rez$overall,INDEX=rez$dfaID_simGroup, FUN=function(x) p.adjust(p=x,method="BH")))
 #logical vector of PGLSs that are significant overall and at Bonneferronin corrected post-hoc level
 rez$sigs<-(rez$overall<.05)# + (rez$p<.0083333333333)==2
+rez$sigsBonferroni<-(rez$bonnferroniP<.05)
 rez$sigsHolmes<-(rez$HolmBonnferroni<.05)
 rez$sigFDR<-(rez$fdrP<.05)
 
@@ -135,14 +137,17 @@ simGroupSummaries<-ddply(subset(shortForm,wilkes<.05),"simGroup",.fun=function(x
 })
 
 countSigPGLS<-as.data.frame(tapply(rez$sigs,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
+countSigPGLSBonferroni<-as.data.frame(tapply(rez$sigsBonferroni,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
 countSigPGLSHolm<-as.data.frame(tapply(rez$sigsHolmes,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
 countSigPGLSfdr<-as.data.frame(tapply(rez$sigFDR,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
 
+names(countSigPGLSBonferroni)<-"countSigPGLSBonferroni"
 names(countSigPGLS)<-"countSigPGLS"
 names(countSigPGLSHolm)<-"countSigPGLSHolm"
 names(countSigPGLSfdr)<-"countSigPGLSfdr"
 
 simGroupSummaries$countSigPGLS<-countSigPGLS
+simGroupSummaries$countSigPGLSBonferroni<-countSigPGLSBonferroni
 simGroupSummaries$countSigPGLSHolm<-countSigPGLSHolm
 simGroupSummaries$countSigPGLSfdr<-countSigPGLSfdr
 print(xtable(simGroupSummaries),type="html")
