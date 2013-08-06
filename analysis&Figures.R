@@ -14,43 +14,51 @@ theme_set(theme_bw(20) + theme(panel.grid.major=element_blank(),panel.grid.minor
 setwd("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/")
 inputFiles<-list.files(path=".",pattern="CorrectBodySize.txt")
 rez<-lapply(inputFiles,FUN=function(x){read.table(x,header=T,sep="\t")})
+
+#parse the file names to add a column called simGroup
 lapply(1:length(rez),FUN=function(x){
   rez[[x]]$simGroup<<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=inputFiles[x],pattern="_")[[1]][3:4],collapse="-")),nrow(rez[[x]]))
 })
+
 rez<-do.call(rbind,rez)
 #get rid of NAs
 rez<-subset(rez,!is.na(dfaSuccessRate))
 
 #create a new binning variable for nvars with only three levels, for creating cleaner plots
-rez$binnedNvars<-factor(cut(rez$nvars,3))->recoded
-levels(rez$binnedNvars)<-c("7-8 variables","8-9 variables","10-11 variables")
+#rez$binnedNvars<-factor(cut(rez$nvars,3))->recoded
+#levels(rez$binnedNvars)<-c("7-8 variables","8-9 variables","10-11 variables")
 
 #calculate the average s value for each simulation, add to the dataframe then delete the temp variable
-TEMPaverageS<-data.frame(averageS=tapply(rez$s,rez$dfaID,FUN=mean),dfaID=as.numeric(names(tapply(rez$s,rez$dfaID,FUN=mean))))
-rez<-merge(TEMPaverageS,rez)
-rm(TEMPaverageS)
+#TEMPaverageS<-data.frame(averageS=tapply(rez$s,rez$dfaID,FUN=mean),dfaID=as.numeric(names(tapply(rez$s,rez$dfaID,FUN=mean))))
+#rez<-merge(TEMPaverageS,rez)
+#rm(TEMPaverageS)
 
 
 #calculate the average r value for each simulation, add to the dataframe then delete the temp variable
-TEMPaverageR<-data.frame(averageR=tapply(rez$r,rez$dfaID,FUN=mean),dfaID=as.numeric(names(tapply(rez$r,rez$dfaID,FUN=mean))))
-rez<-merge(TEMPaverageR,rez)
-rm(TEMPaverageR)
+#TEMPaverageR<-data.frame(averageR=tapply(rez$r,rez$dfaID,FUN=mean),dfaID=as.numeric(names(tapply(rez$r,rez$dfaID,FUN=mean))))
+#rez<-merge(TEMPaverageR,rez)
+#rm(TEMPaverageR)
 
 #calculate the average p value for each simulation, add to the dataframe then delete the temp variable
-TEMPaverageP<-data.frame(averageP=tapply(rez$pvalues,rez$dfaID,FUN=mean),dfaID=as.numeric(names(tapply(rez$pvalues,rez$dfaID,FUN=mean))))
-rez<-merge(TEMPaverageP,rez)
-rm(TEMPaverageP)
+#TEMPaverageP<-data.frame(averageP=tapply(rez$pvalues,rez$dfaID,FUN=mean),dfaID=as.numeric(names(tapply(rez$pvalues,rez$dfaID,FUN=mean))))
+#rez<-merge(TEMPaverageP,rez)
+#rm(TEMPaverageP)
 
-rez$sCategory<-cut(rez$s,4)
-rez$rCategory<-cut(rez$r,4)
+#rez$sCategory<-cut(rez$s,4)
+#rez$rCategory<-cut(rez$r,4)
 
-#logical vector of PGLSs that are significant overall and at Bonneferronin corrected post-hoc level
-rez$sigs<-(rez$overall<.05) + (rez$p<.0083333333333)==2
-
-
+#create column that uniquely identifies each DFA~simGroup combination
 rez$dfaID_simGroup<-paste(rez$dfaID,rez$simGroup)
+
+rez$HolmBonnferroniP<-unlist(tapply(rez$overall,INDEX=rez$dfaID_simGroup, FUN=function(x) p.adjust(p=x,method="holm")))
+rez$fdrP<-unlist(tapply(rez$overall,INDEX=rez$dfaID_simGroup, FUN=function(x) p.adjust(p=x,method="BH")))
+#logical vector of PGLSs that are significant overall and at Bonneferronin corrected post-hoc level
+rez$sigs<-(rez$overall<.05)# + (rez$p<.0083333333333)==2
+rez$sigsHolmes<-(rez$HolmBonnferroni<.05)
+rez$sigFDR<-(rez$fdrP<.05)
+
 #create a shortForm dataframe that includes only columns with apply to a single dfa subset
-shortFormVarnames<-c("dfaID_simGroup","averageP","averageR","averageS","dfaSuccessRate","nvars","binnedNvars","simGroup")
+shortFormVarnames<-c("dfaID_simGroup","dfaSuccessRate","nvars","simGroup")
 shortForm<-ddply(rez[,shortFormVarnames], "dfaID_simGroup", .fun=function(x) x[1,])
 
 splitSimGroup<-str_split(shortForm$simGroup[1:2],"-")
@@ -127,8 +135,16 @@ simGroupSummaries<-ddply(subset(shortForm,wilkes<.05),"simGroup",.fun=function(x
 })
 
 countSigPGLS<-as.data.frame(tapply(rez$sigs,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
-names(countSigPGLS)<-"countsigPGLS"
+countSigPGLSHolm<-as.data.frame(tapply(rez$sigsHolmes,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
+countSigPGLSfdr<-as.data.frame(tapply(rez$sigFDR,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
+
+names(countSigPGLS)<-"countSigPGLS"
+names(countSigPGLSHolm)<-"countSigPGLSHolm"
+names(countSigPGLSfdr)<-"countSigPGLSfdr"
+
 simGroupSummaries$countSigPGLS<-countSigPGLS
+simGroupSummaries$countSigPGLSHolm<-countSigPGLSHolm
+simGroupSummaries$countSigPGLSfdr<-countSigPGLSfdr
 print(xtable(simGroupSummaries),type="html")
 # #count of how many significant chars per subset
 # countTable<-table(tapply(rez$sigs,rez$dfaID,FUN=sum))
@@ -144,14 +160,14 @@ distributionR<- qplot(x=r,data=rez,fill=I('grey'),color=I("black")) + facet_grid
 
 
 #linear model investigating which factors influence the success rate the most
-mod1<-lm(dfaSuccessRate ~ nvars , data=shortForm)
-mod2<-lm(dfaSuccessRate ~ nvars + BM_correlation , data=shortForm)
-mod3<-lm(dfaSuccessRate ~ nvars + BM_correlation + BMCorrectionOrNot, data=shortForm)
-mod4<-lm(dfaSuccessRate ~ nvars * BM_correlation * BMCorrectionOrNot, data=shortForm)
+#mod1<-lm(dfaSuccessRate ~ nvars , data=shortForm)
+#mod2<-lm(dfaSuccessRate ~ nvars + BM_correlation , data=shortForm)
+#mod3<-lm(dfaSuccessRate ~ nvars + BM_correlation + BMCorrectionOrNot, data=shortForm)
+#mod4<-lm(dfaSuccessRate ~ nvars * BM_correlation * BMCorrectionOrNot, data=shortForm)
 
-anova(mod3,mod4)
+#anova(mod3,mod4)
 
-anova(lm(dfaSuccessRate ~ nvars + BM_correlation + BMCorrectionOrNot + nvars:BM_correlation + BM_correlation:BMCorrectionOrNot , data=shortForm))
+#anova(lm(dfaSuccessRate ~ nvars + BM_correlation + BMCorrectionOrNot + nvars:BM_correlation + BM_correlation:BMCorrectionOrNot , data=shortForm))
 
 write.table(x=shortForm,file="~/Dropbox/WAB Dissertation/Chapter 2 - Methods/shortForm.txt",sep="\t",row.names=FALSE)
 
