@@ -16,13 +16,13 @@ inputFiles<-list.files(path=".",pattern="RANDOMIZEDHABITATS")
 
 allRESULTS<-list()
 
-lapply(1:length(inputFiles),FUN=function(file){
-  rez<-lapply(inputFiles[file],FUN=function(x){read.table(x,header=T,sep="\t")})
+lapply(1:length(inputFiles),FUN=function(theFile){
+  rez<-lapply(inputFiles[theFile],FUN=function(x){read.table(x,header=T,sep="\t")})
   
   #parse the file names to add a column called simGroup
   lapply(1:length(rez),FUN=function(x){
-    rez[[x]]$simGroup<<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=inputFiles[file],pattern="_")[[1]][3:4],collapse="-")),nrow(rez[[x]]))
-    rez[[x]]$isCrossvalidated<<-length(grep("CROSSVALIDATED",paste0(str_split(string=inputFiles[file],pattern="_")[[1]])))>0
+    rez[[x]]$simGroup<<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]][3:4],collapse="-")),nrow(rez[[x]]))
+    rez[[x]]$isCrossvalidated<<-length(grep("CROSSVALIDATED",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]])))>0
   })
   
   rez<-do.call(rbind,rez)
