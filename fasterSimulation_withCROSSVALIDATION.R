@@ -110,7 +110,7 @@ myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixed
 # dump("myData","/Users/andrewbarr/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_0R.txt")
 
 
-nSims<-20
+nSims<-2000
 
 results<-lapply(1:nSims,FUN=function(counter){
   
