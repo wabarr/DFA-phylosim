@@ -14,6 +14,7 @@ theme_set(theme_bw(20) + theme(panel.grid.major=element_blank(),panel.grid.minor
 setwd("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/")
 inputFiles<-list.files(path=".",pattern="RANDOMIZEDHABITATS")
 
+
 allRESULTS<-list()
 
 lapply(1:length(inputFiles),FUN=function(theFile){
@@ -162,7 +163,7 @@ lapply(1:length(inputFiles),FUN=function(theFile){
   simGroupSummaries_all$countSigPGLSHolm<-countSigPGLSHolm
   simGroupSummaries_all$countSigPGLSfdr<-countSigPGLSfdr
   #print(xtable(simGroupSummaries_all),type="html")
-  allRESULTS[[file]]<<-simGroupSummaries_all
+  allRESULTS[[theFile]]<<-simGroupSummaries_all
   # #count of how many significant chars per subset
   # countTable<-table(tapply(rez$sigs,rez$dfaID,FUN=sum))
   # countSigPerSample<-qplot(y=as.numeric(countTable),x=1:length(countTable)-1,size=I(5),xlab="Number of Significant Characters",ylab="Number of Samples") + theme_bw(20)
