@@ -12,7 +12,8 @@ nice<-function(x,places=2){round(x,places)}
 theme_set(theme_bw(20) + theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()))
 
 setwd("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/")
-inputFiles<-list.files(path=".",pattern="CorrectBodySize.txt")
+#inputFiles<-list.files(path=".",pattern="RANDOMIZED")
+inputFiles<-"BrownianMotionSimResults_fixedS_highR_DontCorrectBodySize_CROSSVALIDATED_RANDOMIZEDHABITATS.txt"
 rez<-lapply(inputFiles,FUN=function(x){read.table(x,header=T,sep="\t")})
 
 #parse the file names to add a column called simGroup
@@ -146,21 +147,22 @@ names(countSigPGLS)<-"countSigPGLS"
 names(countSigPGLSHolm)<-"countSigPGLSHolm"
 names(countSigPGLSfdr)<-"countSigPGLSfdr"
 
-simGroupSummaries$countSigPGLS<-countSigPGLS
-simGroupSummaries$countSigPGLSBonferroni<-countSigPGLSBonferroni
-simGroupSummaries$countSigPGLSHolm<-countSigPGLSHolm
-simGroupSummaries$countSigPGLSfdr<-countSigPGLSfdr
+simGroupSummaries_all$countSigPGLS<-countSigPGLS
+simGroupSummaries_all$countSigPGLSBonferroni<-countSigPGLSBonferroni
+simGroupSummaries_all$countSigPGLSHolm<-countSigPGLSHolm
+simGroupSummaries_all$countSigPGLSfdr<-countSigPGLSfdr
 print(xtable(simGroupSummaries),type="html")
+simGroupSummaries_all
 # #count of how many significant chars per subset
 # countTable<-table(tapply(rez$sigs,rez$dfaID,FUN=sum))
 # countSigPerSample<-qplot(y=as.numeric(countTable),x=1:length(countTable)-1,size=I(5),xlab="Number of Significant Characters",ylab="Number of Samples") + theme_bw(20)
 # #ggsave("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/countSigPerSample.pdf",countSigPerSample)
 
 
-splitSimGroup<-str_split(rez$simGroup[1:2],"-")
-rez$BM_correlation<-factor(unlist(mclapply(str_split(rez$simGroup,"-"),FUN=function(x) x[1])),levels=c("0R","lowR","highR"),ordered=TRUE)
-levels(rez$BM_correlation)<-c("r = 0","low r","high r")
-distributionR<- qplot(x=r,data=rez,fill=I('grey'),color=I("black")) + facet_grid(facets=BM_correlation~.) + ylab("proportion") + scale_y_continuous(breaks=c(0,37000/2,37000),labels=c("0","0.5","1"))
+#splitSimGroup<-str_split(rez$simGroup[1:2],"-")
+#rez$BM_correlation<-factor(unlist(mclapply(str_split(rez$simGroup,"-"),FUN=function(x) x[1])),levels=c("0R","lowR","highR"),ordered=TRUE)
+#levels(rez$BM_correlation)<-c("r = 0","low r","high r")
+#distributionR<- qplot(x=r,data=rez,fill=I('grey'),color=I("black")) + facet_grid(facets=BM_correlation~.) + ylab("proportion") + scale_y_continuous(breaks=c(0,37000/2,37000),labels=c("0","0.5","1"))
 # ggsave("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/distributionRAcrossCharacterSets.pdf",distributionR)
 
 
