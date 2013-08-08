@@ -85,18 +85,18 @@ doDFA<-function(dataframe,correctForBodySize=TRUE,crossValidate=TRUE){
   RoyPval<-summary(manova(as.matrix(dataframe[,varNames])~dataframe$Hab),test="Roy")$stats[1,6]
   return(data.frame(regPerCorr=regPerCorr,WilksPval=WilksPval,PillaiPval=PillaiPval,HotellingPval=HotellingPval,RoyPval=RoyPval))
 }
-# 
-# doPGLS<-function(dataframe,correctForBodySize=TRUE){
-#   varNames<-colnames(dataframe)[grep("X",colnames(dataframe))]
-#   geostring<-""
-#   if(correctForBodySize == TRUE){#correct by geomean if flagged to do so
-#     dataframe$geomean<-geomean(dataframe,varNames)
-#     dataframe[,varNames]<-dataframe[,varNames]/dataframe$geomean
-#     geostring<-"+ log(geomean)"
-#   }
-#   comp<-comparative.data(myTree,dataframe,names.col='taxon')
-#   lapply(varNames,FUN=function(x){pgls(formula(paste(x, " ~ Hab ",geostring,sep="")),data=comp,lambda="ML")})
-# }
+
+doPGLS<-function(dataframe,correctForBodySize=TRUE){
+  varNames<-colnames(dataframe)[grep("X",colnames(dataframe))]
+  geostring<-""
+  if(correctForBodySize == TRUE){#correct by geomean if flagged to do so
+    dataframe$geomean<-geomean(dataframe,varNames)
+    dataframe[,varNames]<-dataframe[,varNames]/dataframe$geomean
+    geostring<-"+ log(geomean)"
+  }
+  comp<-comparative.data(myTree,dataframe,names.col='taxon')
+  lapply(varNames,FUN=function(x){pgls(formula(paste(x, " ~ Hab ",geostring,sep="")),data=comp,lambda="ML")})
+}
 
 myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_lowR.txt")[[1]]
 
@@ -110,7 +110,7 @@ myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixed
 # dump("myData","/Users/andrewbarr/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_0R.txt")
 
 
-nSims<-2000
+nSims<-20
 
 results<-lapply(1:nSims,FUN=function(counter){
   
@@ -127,7 +127,12 @@ results<-lapply(1:nSims,FUN=function(counter){
   if(sum(as.vector(myDataFrame)<0)>0){myDataFrame<-myDataFrame + 100}
   
   #add in Hab and taxon columns 
-  myDataFrame<-data.frame(myDataFrame,taxon=habs$Fernandez_Vrba_2005_Name,Hab=habs$Hab)
+  randomizeHabs<-TRUE
+  ifelse(randomizeHabs,
+         yes=myDataFrame<-data.frame(myDataFrame,taxon=habs$Fernandez_Vrba_2005_Name,Hab=sample(levels(habs$Hab),nrow(myDataFrame),replace=TRUE)),
+         no=myDataFrame<-data.frame(myDataFrame,taxon=habs$Fernandez_Vrba_2005_Name,Hab=habs$Hab))
+
+  
   
   #extract the r and s value for each variable
   longResults<-rbind.fill(lapply(vars,FUN=function(x){
@@ -136,24 +141,24 @@ results<-lapply(1:nSims,FUN=function(counter){
   
   df<-tryCatch(doDFA(myDataFrame,correctForBodySize=TRUE,crossValidate=TRUE),error=function(e) return(NA))
   if(sum(is.na(df))==0){
-#     pglss<-tryCatch(doPGLS(myDataFrame,correctForBodySize=TRUE),error=function(e) return(rep(NA,length(vars))))
+     pglss<-tryCatch(doPGLS(myDataFrame,correctForBodySize=TRUE),error=function(e) return(rep(NA,length(vars))))
     
-#     if(sum(is.na(pglss))==0){
-#       monotonic<-unlist(lapply(pglss,FUN=function(y){paste(order(summary(y)$coef[2:4,1]),collapse="") %in% c("321","123")}))
+     if(sum(is.na(pglss))==0){
+      monotonic<-unlist(lapply(pglss,FUN=function(y){paste(order(summary(y)$coef[2:4,1]),collapse="") %in% c("321","123")}))
       longResults$dfaSuccessRate<-rep(df$regPerCorr,nrow(longResults))
       longResults$wilkesLambda<-rep(df$Wilks,nrow(longResults))        
-#       longResults$PillaiPval<-rep(df$Pillai,nrow(longResults))
-#       longResults$HotellingPval<-rep(df$Hotell,nrow(longResults))
-#       longResults$RoyPval<-rep(df$Roy,nrow(longResults))
+     longResults$PillaiPval<-rep(df$Pillai,nrow(longResults))
+     longResults$HotellingPval<-rep(df$Hotell,nrow(longResults))
+     longResults$RoyPval<-rep(df$Roy,nrow(longResults))
       longResults$dfaID<-counter
       longResults$nvars<-rep(nrow(longResults),nrow(longResults))
-#       longResults$pvalues<-unlist(lapply(pglss,FUN=function(y){summary(y)$coef[4,4]}))
-#       longResults$overallPvalues<-unlist(lapply(pglss,FUN=function(z){pf(summary(z)$fstatistic[1], summary(z)$fstatistic[2], summary(z)$fstatistic[3], lower.tail = FALSE)}))
-#       longResults$monotonic<-monotonic
+       longResults$pvalues<-unlist(lapply(pglss,FUN=function(y){summary(y)$coef[4,4]}))
+       longResults$overallPvalues<-unlist(lapply(pglss,FUN=function(z){pf(summary(z)$fstatistic[1], summary(z)$fstatistic[2], summary(z)$fstatistic[3], lower.tail = FALSE)}))
+       longResults$monotonic<-monotonic
       print(paste(counter," successful iterations"))
-#     }
+     }
   }
   return(longResults)
 })
 results<-rbind.fill(results)
-write.table(results,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/BrownianMotionSimResults_fixedS_lowR_CorrectBodySize_CROSSVALIDATED.txt",sep="\t",row.names=FALSE)
+write.table(results,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/BrownianMotionSimResults_fixedS_lowR_CorrectBodySize_CROSSVALIDATED_RANDOMIZEDHABITATS.txt",sep="\t",row.names=FALSE)
