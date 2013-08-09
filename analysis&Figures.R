@@ -201,5 +201,6 @@ allRESULTS<-lapply(allRESULTS,FUN=function(df){
 })
 #bind it up
 allRESULTS<-do.call(rbind,allRESULTS)
+allRESULTS$isCrossvalidated<-as.character(allRESULTS$isCrossvalidated)
 toWrite<-print(xtable(allRESULTS,digits=4,),type="html")
 writeLines(toWrite,con="~/Desktop/randomizedResults.html")
