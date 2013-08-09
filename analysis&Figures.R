@@ -13,7 +13,7 @@ theme_set(theme_bw(20) + theme(panel.grid.major=element_blank(),panel.grid.minor
 
 setwd("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/")
 inputFiles<-list.files(path=".",pattern="RANDOMIZEDHABITATS")
-
+#inputFiles<-"BrownianMotionSimResults_fixedS_highR_CorrectBodySize_RANDOMIZEDHABITATS.txt"
 
 allRESULTS<-list()
 

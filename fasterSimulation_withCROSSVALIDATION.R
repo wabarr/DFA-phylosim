@@ -98,7 +98,7 @@ doPGLS<-function(dataframe,correctForBodySize=TRUE){
   lapply(varNames,FUN=function(x){pgls(formula(paste(x, " ~ Hab ",geostring,sep="")),data=comp,lambda="ML")})
 }
 
-myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_lowR.txt")[[1]]
+myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_highR.txt")[[1]]
 
 # #code to resimulate chars if need be
 # myData<-lapply(1:10000,FUN=function(x){
@@ -110,7 +110,7 @@ myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixed
 # dump("myData","/Users/andrewbarr/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_0R.txt")
 
 
-nSims<-2000
+nSims<-100
 
 results<-lapply(1:nSims,FUN=function(counter){
   
@@ -139,9 +139,9 @@ results<-lapply(1:nSims,FUN=function(counter){
     data.frame(r=myData[[x]]$r,s=myData[[x]]$s,measurementID=x)
   }))
   
-  df<-tryCatch(doDFA(myDataFrame,correctForBodySize=FALSE,crossValidate=FALSE),error=function(e) return(NA))
+  df<-tryCatch(doDFA(myDataFrame,correctForBodySize=TRUE,crossValidate=FALSE),error=function(e) return(NA))
   if(sum(is.na(df))==0){
-     pglss<-tryCatch(doPGLS(myDataFrame,correctForBodySize=FALSE),error=function(e) return(rep(NA,length(vars))))
+     pglss<-tryCatch(doPGLS(myDataFrame,correctForBodySize=TRUE),error=function(e) return(rep(NA,length(vars))))
     
      if(sum(is.na(pglss))==0){
       monotonic<-unlist(lapply(pglss,FUN=function(y){paste(order(summary(y)$coef[2:4,1]),collapse="") %in% c("321","123")}))
@@ -161,4 +161,4 @@ results<-lapply(1:nSims,FUN=function(counter){
   return(longResults)
 })
 results<-rbind.fill(results)
-write.table(results,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/BrownianMotionSimResults_fixedS_lowR_DontCorrectBodySize_RANDOMIZEDHABITATS.txt",sep="\t",row.names=FALSE)
+write.table(results,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/BrownianMotionSimResults_fixedS_highR_CorrectBodySize_RANDOMIZEDHABITATS.txt",sep="\t",row.names=FALSE)
