@@ -92,13 +92,13 @@ doPGLS<-function(dataframe,correctForBodySize=TRUE){
   if(correctForBodySize == TRUE){#correct by geomean if flagged to do so
     dataframe$geomean<-geomean(dataframe,varNames)
     dataframe[,varNames]<-dataframe[,varNames]/dataframe$geomean
-    geostring<-"+ log(geomean)"
+    #geostring<-"+ log(geomean)"
   }
   comp<-comparative.data(myTree,dataframe,names.col='taxon')
   lapply(varNames,FUN=function(x){pgls(formula(paste(x, " ~ Hab ",geostring,sep="")),data=comp,lambda="ML")})
 }
 
-myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_highR.txt")[[1]]
+myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_0R.txt")[[1]]
 
 # #code to resimulate chars if need be
 # myData<-lapply(1:10000,FUN=function(x){
@@ -110,7 +110,7 @@ myData<-source("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixed
 # dump("myData","/Users/andrewbarr/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_0R.txt")
 
 
-nSims<-100
+nSims<-2000
 
 results<-lapply(1:nSims,FUN=function(counter){
   
@@ -127,7 +127,7 @@ results<-lapply(1:nSims,FUN=function(counter){
   if(sum(as.vector(myDataFrame)<0)>0){myDataFrame<-myDataFrame + 100}
   
   #add in Hab and taxon columns 
-  randomizeHabs<-TRUE
+  randomizeHabs<-FALSE
   ifelse(randomizeHabs,
          yes=myDataFrame<-data.frame(myDataFrame,taxon=habs$Fernandez_Vrba_2005_Name,Hab=sample(levels(habs$Hab),nrow(myDataFrame),replace=TRUE)),
          no=myDataFrame<-data.frame(myDataFrame,taxon=habs$Fernandez_Vrba_2005_Name,Hab=habs$Hab))
@@ -139,7 +139,7 @@ results<-lapply(1:nSims,FUN=function(counter){
     data.frame(r=myData[[x]]$r,s=myData[[x]]$s,measurementID=x)
   }))
   
-  df<-tryCatch(doDFA(myDataFrame,correctForBodySize=TRUE,crossValidate=FALSE),error=function(e) return(NA))
+  df<-tryCatch(doDFA(myDataFrame,correctForBodySize=TRUE,crossValidate=TRUE),error=function(e) return(NA))
   if(sum(is.na(df))==0){
      pglss<-tryCatch(doPGLS(myDataFrame,correctForBodySize=TRUE),error=function(e) return(rep(NA,length(vars))))
     
@@ -161,4 +161,4 @@ results<-lapply(1:nSims,FUN=function(counter){
   return(longResults)
 })
 results<-rbind.fill(results)
-write.table(results,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/BrownianMotionSimResults_fixedS_highR_CorrectBodySize_RANDOMIZEDHABITATS.txt",sep="\t",row.names=FALSE)
+write.table(results,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/BrownianMotionSimResults_fixedS_0R_CorrectBodySize_CROSSVALIDATED.txt",sep="\t",row.names=FALSE)
