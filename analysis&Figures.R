@@ -12,18 +12,20 @@ nice<-function(x,places=2){round(x,places)}
 theme_set(theme_bw(20) + theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()))
 
 setwd("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/")
-inputFiles<-list.files(path=".",pattern="RANDOMIZEDHABITATS")
-#inputFiles<-"BrownianMotionSimResults_fixedS_highR_CorrectBodySize_RANDOMIZEDHABITATS.txt"
+inputFiles<-list.files(path=".",pattern="BrownianMotionSimResults")
+#inputFiles<-"BrownianMotionSimResults_fixedS_0R_DontCorrectBodySize.txt"
 
 allRESULTS<-list()
 
 lapply(1:length(inputFiles),FUN=function(theFile){
   rez<-lapply(inputFiles[theFile],FUN=function(x){read.table(x,header=T,sep="\t")})
+  print(inputFiles[theFile])
   
   #parse the file names to add a column called simGroup
   lapply(1:length(rez),FUN=function(x){
     rez[[x]]$simGroup<<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]][3:4],collapse="-")),nrow(rez[[x]]))
     rez[[x]]$isCrossvalidated<<-length(grep("CROSSVALIDATED",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]])))>0
+    rez[[x]]$isRandomizedHabs<<-length(grep("RANDOMIZEDHABITATS",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]])))>0
   })
   
   rez<-do.call(rbind,rez)
@@ -66,7 +68,7 @@ lapply(1:length(inputFiles),FUN=function(theFile){
   rez$sigFDR<-(rez$fdrP<.05)
   
   #create a shortForm dataframe that includes only columns with apply to a single dfa subset
-  shortFormVarnames<-c("dfaID_simGroup","dfaSuccessRate","nvars","simGroup","wilkesLambda","PillaiPval","HotellingPval","RoyPval","isCrossvalidated")
+  shortFormVarnames<-c("dfaID_simGroup","dfaSuccessRate","nvars","simGroup","wilkesLambda","PillaiPval","HotellingPval","RoyPval","isCrossvalidated","isRandomizedHabs")
   shortForm<-ddply(rez[,shortFormVarnames], "dfaID_simGroup", .fun=function(x) x[1,])
   
   splitSimGroup<-str_split(shortForm$simGroup[1:2],"-")
@@ -129,6 +131,7 @@ lapply(1:length(inputFiles),FUN=function(theFile){
     data.frame(
       #BMCorrectionOrNot=unique(x$BMCorrectionOrNot),
       isCrossvalidated=unique(x$isCrossvalidated),
+      isRandomizedHabs=unique(x$isRandomizedHabs),
       BM_correlation=unique(x$BM_correlation),
       proportionOfDFAsSignificant=sum(x$wilkesLambda<.05)/nrow(x),
       meanDFASuccessRate=mean(x$dfaSuccessRate*100,na.rm=TRUE),
@@ -142,6 +145,7 @@ lapply(1:length(inputFiles),FUN=function(theFile){
       #BMCorrectionOrNot=unique(x$BMCorrectionOrNot),
       BM_correlation=unique(x$BM_correlation),
       isCrossvalidated=unique(x$isCrossvalidated),
+      isRandomizedHabs=unique(x$isRandomizedHabs),
       proportionOfDFAsSignificant=sum(x$wilkesLambda<.05)/nrow(x),
       meanDFASuccessRate=mean(x$dfaSuccessRate*100,na.rm=TRUE),
       sdDFASuccessRate=sd(x$dfaSuccessRate*100,na.rm=TRUE)
