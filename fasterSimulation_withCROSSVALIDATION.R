@@ -168,7 +168,7 @@ lapply(filesToDo,FUN=function(theFile)
   # dump("myData","/Users/andrewbarr/Dropbox/WAB Dissertation/Chapter 2 - Methods/dataForSims_fixedS_0R.txt")
   
   
-  nSims<-100
+  nSims<-2000
   
   results<-lapply(1:nSims,FUN=function(DFAcounter){
     
@@ -235,7 +235,7 @@ lapply(filesToDo,FUN=function(theFile)
   })
   results<-rbind.fill(results)
   write.table(results,parameters[["filename"]],sep="\t",row.names=FALSE)
-  print(paste0("Finished file # ",fileCounter,"/",length(filesToDo)))
+  #print(paste0("Finished file # ",fileCounter,"/",length(filesToDo)))
 })
 ############END ANALYSIS################
 ############END ANALYSIS################
