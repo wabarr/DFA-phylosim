@@ -5,27 +5,27 @@ require(stringr)
 require(scales)
 require(xtable)
 require(gridExtra)
-require(parallel)
 
 nice<-function(x,places=2){round(x,places)}
 
-theme_set(theme_bw(20) + theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()))
+#theme_set(theme_bw(20) + theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()))
 
 setwd("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/")
 inputFiles<-list.files(path=".",pattern="BrownianMotionSimResults")
-#inputFiles<-"BrownianMotionSimResults_fixedS_0R_DontCorrectBodySize.txt"
 
-allRESULTS<-list()
 
-lapply(1:length(inputFiles),FUN=function(theFile){
-  rez<-lapply(inputFiles[theFile],FUN=function(x){read.table(x,header=T,sep="\t")})
-  print(inputFiles[theFile])
+
+#whole analysis in a function
+doTheWholeShebang<-function(theFile){
+  allRESULTS<-list()
+  rez<-lapply(inputFiles[[theFile]],FUN=function(x){read.table(x,header=T,sep="\t")})
+  #print(inputFiles[[theFile]])
   
   #parse the file names to add a column called simGroup
   lapply(1:length(rez),FUN=function(x){
-    rez[[x]]$simGroup<<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]][3:4],collapse="-")),nrow(rez[[x]]))
-    rez[[x]]$isCrossvalidated<<-length(grep("CROSSVALIDATED",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]])))>0
-    rez[[x]]$isRandomizedHabs<<-length(grep("RANDOMIZEDHABITATS",paste0(str_split(string=inputFiles[theFile],pattern="_")[[1]])))>0
+    rez[[x]]$simGroup<<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=inputFiles[[theFile]],pattern="_")[[1]][3:4],collapse="-")),nrow(rez[[x]]))
+    rez[[x]]$isCrossvalidated<<-length(grep("CROSSVALIDATED",paste0(str_split(string=inputFiles[[theFile]],pattern="_")[[1]])))>0
+    rez[[x]]$isRandomizedHabs<<-length(grep("RANDOMIZEDHABITATS",paste0(str_split(string=inputFiles[[theFile]],pattern="_")[[1]])))>0
   })
   
   rez<-do.call(rbind,rez)
@@ -140,22 +140,22 @@ lapply(1:length(inputFiles),FUN=function(theFile){
   })
   
   
-  simGroupSummaries<-ddply(subset(shortForm,wilkesLambda<.05),"simGroup",.fun=function(x){
-    data.frame(
-      #BMCorrectionOrNot=unique(x$BMCorrectionOrNot),
-      BM_correlation=unique(x$BM_correlation),
-      isCrossvalidated=unique(x$isCrossvalidated),
-      isRandomizedHabs=unique(x$isRandomizedHabs),
-      proportionOfDFAsSignificant=sum(x$wilkesLambda<.05)/nrow(x),
-      meanDFASuccessRate=mean(x$dfaSuccessRate*100,na.rm=TRUE),
-      sdDFASuccessRate=sd(x$dfaSuccessRate*100,na.rm=TRUE)
-    )
-  })
-  
-  countSigPGLS<-as.data.frame(tapply(rez$sigs,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
-  countSigPGLSBonferroni<-as.data.frame(tapply(rez$sigsBonferroni,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
-  countSigPGLSHolm<-as.data.frame(tapply(rez$sigsHolmes,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
-  countSigPGLSfdr<-as.data.frame(tapply(rez$sigFDR,INDEX=rez$simGroup,FUN=function(x) sum(x)/length(x)))
+  #   simGroupSummaries<-ddply(subset(shortForm,wilkesLambda<.05),"simGroup",.fun=function(x){
+  #     data.frame(
+  #       #BMCorrectionOrNot=unique(x$BMCorrectionOrNot),
+  #       BM_correlation=unique(x$BM_correlation),
+  #       isCrossvalidated=unique(x$isCrossvalidated),
+  #       isRandomizedHabs=unique(x$isRandomizedHabs),
+  #       proportionOfDFAsSignificant=sum(x$wilkesLambda<.05)/nrow(x),
+  #       meanDFASuccessRate=mean(x$dfaSuccessRate*100,na.rm=TRUE),
+  #       sdDFASuccessRate=sd(x$dfaSuccessRate*100,na.rm=TRUE)
+  #     )
+  #   })
+  #   
+  countSigPGLS<-as.data.frame(tapply(rez$sigs,INDEX=rez$simGroup,FUN=function(x) sum(x,na.rm=T) / (length(x) - sum(is.na(x)))))
+  countSigPGLSBonferroni<-as.data.frame(tapply(rez$sigsBonferroni,INDEX=rez$simGroup,FUN=function(x) sum(x,na.rm=T) / (length(x) - sum(is.na(x)))))
+  countSigPGLSHolm<-as.data.frame(tapply(rez$sigsHolmes,INDEX=rez$simGroup,FUN=function(x) sum(x,na.rm=T) / (length(x) - sum(is.na(x)))))
+  countSigPGLSfdr<-as.data.frame(tapply(rez$sigFDR,INDEX=rez$simGroup,FUN=function(x) sum(x,na.rm=T) / (length(x) - sum(is.na(x)))))
   
   names(countSigPGLSBonferroni)<-"countSigPGLSBonferroni"
   names(countSigPGLS)<-"countSigPGLS"
@@ -167,7 +167,7 @@ lapply(1:length(inputFiles),FUN=function(theFile){
   simGroupSummaries_all$countSigPGLSHolm<-countSigPGLSHolm
   simGroupSummaries_all$countSigPGLSfdr<-countSigPGLSfdr
   #print(xtable(simGroupSummaries_all),type="html")
-  allRESULTS[[theFile]]<<-simGroupSummaries_all
+  allRESULTS[[theFile]]<-simGroupSummaries_all
   # #count of how many significant chars per subset
   # countTable<-table(tapply(rez$sigs,rez$dfaID,FUN=sum))
   # countSigPerSample<-qplot(y=as.numeric(countTable),x=1:length(countTable)-1,size=I(5),xlab="Number of Significant Characters",ylab="Number of Samples") + theme_bw(20)
@@ -193,18 +193,29 @@ lapply(1:length(inputFiles),FUN=function(theFile){
   
   #write.table(x=shortForm,file="~/Dropbox/WAB Dissertation/Chapter 2 - Methods/shortForm.txt",sep="\t",row.names=FALSE)
   
-})
+  #change these values from dataframes to numerics
+  allRESULTS<-lapply(allRESULTS,FUN=function(df){
+    df$countSigPGLS<-as.numeric(df$countSigPGLS)
+    df$countSigPGLSBonferroni<-as.numeric(df$countSigPGLSBonferroni)
+    df$countSigPGLSHolm<-as.numeric(df$countSigPGLSHolm)
+    df$countSigPGLSfdr<-as.numeric(df$countSigPGLSfdr)
+    return(df)
+  })
+  
+  #bind it up
+  allRESULTS<-do.call(rbind,allRESULTS)
+  allRESULTS$isCrossvalidated<-as.character(allRESULTS$isCrossvalidated)
+  toWrite<-print(xtable(allRESULTS,digits=4,),type="html")
+  writeLines(toWrite,con=paste0("~/Desktop/",str_split(inputFiles[theFile],".txt")[[1]][1],".html"))
+  
+}
 
-#change these values from dataframes to numerics
-allRESULTS<-lapply(allRESULTS,FUN=function(df){
-  df$countSigPGLS<-as.numeric(df$countSigPGLS)
-  df$countSigPGLSBonferroni<-as.numeric(df$countSigPGLSBonferroni)
-  df$countSigPGLSHolm<-as.numeric(df$countSigPGLSHolm)
-  df$countSigPGLSfdr<-as.numeric(df$countSigPGLSfdr)
-  return(df)
-})
-#bind it up
-allRESULTS<-do.call(rbind,allRESULTS)
-allRESULTS$isCrossvalidated<-as.character(allRESULTS$isCrossvalidated)
-toWrite<-print(xtable(allRESULTS,digits=4,),type="html")
-writeLines(toWrite,con="~/Desktop/randomizedResults.html")
+#debug(doTheWholeShebang)
+#doTheWholeShebang(2)
+lapply(1:length(inputFiles),FUN=doTheWholeShebang)
+
+
+temporaryFILES<-list.files("~/Desktop",".html",full.names=TRUE)
+toWrite<-lapply(temporaryFILES,FUN=function(x) readLines(x,-1))
+write(unlist(toWrite),"~/Desktop/output.html")
+lapply(temporaryFILES,unlink)
