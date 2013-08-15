@@ -91,45 +91,6 @@ doTheWholeShebang<-function(theFile){
   #annotateDF<-ddply(rez,"binnedNvars",.fun=function(x){paste("Mean = ",round(mean(x$dfaSuccessRate),2)*100,"%",sep="")})
   #annotateDF2<-ddply(rez,"binnedNvars",.fun=function(x){paste("95th percentile = ",round(quantile(x$dfaSuccessRate,.95),2)*100,"%",sep="")})
   
-  ####################################PLOTS################################
-  ####################################PLOTS################################
-  ####################################PLOTS################################
-  # boxplot_SuccessByR_all<-qplot(nvars,dfaSuccessRate,data=shortForm,geom="boxplot",group=interaction(nvars,BMCorrectionOrNot),xlab="# of characters",ylab="Classification Success Rate",fill=BMCorrectionOrNot,facets=~BM_correlation,outlier.size=0) + 
-  #   scale_y_continuous(labels=percent) + 
-  #   scale_fill_grey(start = 0.9, end = 0.5) + 
-  #   labs(fill="Size Correction") + 
-  #   guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
-  #   theme_bw(20) + 
-  #   theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7))
-  # 
-  # 
-  # boxplot_SuccessByR<-qplot(nvars,dfaSuccessRate,data=subset(shortForm, wilkes>.05),geom="boxplot",group=interaction(nvars,BMCorrectionOrNot),xlab="# of characters",ylab="Classification Success Rate",fill=BMCorrectionOrNot,facets=~BM_correlation,outlier.size=0) + 
-  #   scale_y_continuous(labels=percent) + 
-  #   scale_fill_grey(start = 0.9, end = 0.5) + 
-  #   labs(fill="Size Correction") + 
-  #   guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
-  #   theme_bw(20) + 
-  #   theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7))
-  # #ggsave("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/boxplotsSuccessByR.pdf",boxplot_SuccessByR,height=9.15,width=14,units="in")
-  # 
-  # 
-  # 
-  # densityDFA_all<-qplot(x=dfaSuccessRate*100,data=shortForm,lty=BM_correlation,geom="density",alpha=I(.35),fill=BM_correlation, facets=BMCorrectionOrNot~.,main="Fig 2A - All DFAs",xlab="Success Rate") + 
-  #   scale_linetype_manual(values=c("dotted", "solid","longdash","dotdash")) +
-  #   scale_x_continuous(limits=c(30,90)) + 
-  #   theme(legend.title = element_blank())
-  # 
-  # densityDFA<-qplot(x=dfaSuccessRate*100,data=subset(shortForm,wilkes<.05),lty=BM_correlation,geom="density",alpha=I(.35),fill=BM_correlation, facets=BMCorrectionOrNot~.,main="Fig 2B - Only Significant DFAs",xlab="Success Rate") + 
-  #   scale_linetype_manual(values=c("dotted", "solid","longdash","dotdash")) +
-  #   scale_x_continuous(limits=c(30,90)) + 
-  #   theme(legend.title = element_blank())
-  # pdf(file="~/Dropbox/WAB Dissertation/Chapter 2 - Methods/densityDFA.pdf",width=14,height=11.15)
-  # grid.arrange(densityDFA_all,densityDFA,ncol=1)
-  # dev.off()
-  
-  ####################################ENDPLOTS################################
-  ####################################ENDPLOTS################################
-  ####################################ENDPLOTS################################
   
   simGroupSummaries_all<-ddply(shortForm,"simGroup",.fun=function(x){
     data.frame(
@@ -230,7 +191,7 @@ if(summarizeResults) {
 }
 
 rez<-read.table("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/SimulationResults.txt",header=TRUE,sep="\t")
-#use ddply to create the new table3
+####TABLE 3
 ddply(rez,
       .variables=.(simGroup,isRandomizedHabs),
       .fun=summarize,
@@ -241,3 +202,78 @@ ddply(rez,
           PGLS_Type_I_error_rate=round(countSigPGLS[2]*100,2),
           PGLS_Type_I_error_rate_FDR=round(countSigPGLSfdr[2]*100,2)
       )
+
+
+####################################PLOTS################################
+####################################PLOTS################################
+####################################PLOTS################################
+
+theFiles<-list.files("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/","BrownianMotionSim",full.names=TRUE)
+theData<-mclapply(theFiles,function(x) {
+                                        TEMP<-read.table(x,header=TRUE,sep="\t")
+                                        TEMP$simGroup<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=x,pattern="_")[[1]][3:4],collapse="-")),nrow(TEMP))
+                                        TEMP$isCrossvalidated<-length(grep("CROSSVALIDATED",paste0(str_split(string=x,pattern="_")[[1]])))>0
+                                        TEMP$isRandomizedHabs<-length(grep("RANDOMIZEDHABITATS",paste0(str_split(string=x,pattern="_")[[1]])))>0
+                                        TEMP$BMCorrectionOrNot<-str_split(TEMP$simGroup[1],pattern="-")[[1]][2]
+                                        TEMP$BM_correlation<-str_split(TEMP$simGroup[1],pattern="-")[[1]][1]
+                                        
+                                        if(str_split(TEMP$simGroup[1],pattern="-")[[1]][2]=="CorrectBodySize" && TEMP$isRandomizedHabs==FALSE) {return(TEMP)}
+                                        })
+
+theData<-do.call(rbind,theData)
+boxplot_SuccessByR_all<-qplot(nvars,dfaSuccessRate,data=subset(theData,BMCorrectionOrNot="CorrectBodySize"),geom="boxplot",fill=isCrossvalidated,group=interaction(nvars,isCrossvalidated),xlab="# of characters",ylab="Classification Success Rate",facets=~BM_correlation,outlier.size=0) + 
+  scale_fill_grey(start = 0.9, end = 0.5) + 
+  labs(fill="Crossvalidated") + 
+  guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
+  theme_bw(20) + 
+  theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7))
+ggsave(boxplot_SuccessByR_all,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/boxplotsSuccessByR.pdf",boxplot_SuccessByR,height=9.15,width=14,units="in")
+
+#   boxplot_SuccessByR<-qplot(nvars,dfaSuccessRate,data=subset(shortForm, wilkes<.05),geom="boxplot",group=interaction(nvars,BMCorrectionOrNot),xlab="# of characters",ylab="Classification Success Rate",fill=BMCorrectionOrNot,facets=~BM_correlation,outlier.size=0) + 
+#     scale_y_continuous(labels=percent) + 
+#     scale_fill_grey(start = 0.9, end = 0.5) + 
+#     labs(fill="Size Correction") + 
+#     guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
+#     theme_bw(20) + 
+#     theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7))
+#   #ggsave("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/boxplotsSuccessByR.pdf",boxplot_SuccessByR,height=9.15,width=14,units="in")
+#   
+
+
+# densityDFA_all<-qplot(x=dfaSuccessRate*100,data=shortForm,lty=BM_correlation,geom="density",alpha=I(.35),fill=BM_correlation, facets=BMCorrectionOrNot~.,main="Fig 2A - All DFAs",xlab="Success Rate") + 
+#   scale_linetype_manual(values=c("dotted", "solid","longdash","dotdash")) +
+#   scale_x_continuous(limits=c(30,90)) + 
+#   theme(legend.title = element_blank())
+# ggsave(densityDFA_all,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/densityDFA.pdf",width=14,height=11.15)
+#   densityDFA<-qplot(x=dfaSuccessRate*100,data=subset(shortForm,wilkes<.05),lty=BM_correlation,geom="density",alpha=I(.35),fill=BM_correlation, facets=BMCorrectionOrNot~.,main="Fig 2B - Only Significant DFAs",xlab="Success Rate") + 
+#     scale_linetype_manual(values=c("dotted", "solid","longdash","dotdash")) +
+#     scale_x_continuous(limits=c(30,90)) + 
+#     theme(legend.title = element_blank())
+#   pdf(file="~/Dropbox/WAB Dissertation/Chapter 2 - Methods/densityDFA.pdf",width=14,height=11.15)
+#   grid.arrange(densityDFA_all,densityDFA,ncol=1)
+#   dev.off()
+#   
+
+rez$Dataset<-sapply(str_split(string=rez$simGroup,pattern="-"), FUN=function(x) x[[1]])
+rez$Dataset<-factor(rez$Dataset)
+levels(rez$Dataset)<-c("r = 0 (phylo)  ","high r   ","low r   ","r = 0 (no phylo)")
+
+rez$isCrossvalidated<-factor(rez$isCrossvalidated)
+levels(rez$isCrossvalidated)<-c("Resubstitution","Crossvalidation")
+
+rez$isRandomizedHabs<-factor(rez$isRandomizedHabs)
+levels(rez$isRandomizedHabs)<-c("Actual Habitats","Randomized Habitats")
+
+DFAresults<-ggplot(data=rez,aes(x=proportionOfDFAsSignificant*100,y=meanDFASuccessRate,color=Dataset,shape=Dataset)) + 
+    geom_point(size=7) + 
+    facet_grid(facets=isCrossvalidated~isRandomizedHabs) + 
+    theme_bw(20) + 
+    scale_color_grey(start=.8,end=.2) + 
+    scale_shape_manual(values=16:19) +
+    labs(x="% of DFAs significant",y="Mean Success Rate (%)",title="Summary of DFA Results") + 
+    theme(legend.position="bottom")
+    ggsave("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/DFA_results_points.eps",DFAresults,width=7,height=7,units="in")
+    
+####################################ENDPLOTS################################
+####################################ENDPLOTS################################
+####################################ENDPLOTS################################
