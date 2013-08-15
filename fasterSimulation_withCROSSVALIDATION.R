@@ -5,7 +5,8 @@ if(!require(MASS)) install.packages("MASS")
 if(!require(caper)) install.packages("caper")
 if(!require(plyr)) install.packages("plyr")
 if(!require(stringr)) install.packages("stringr")
-
+if(!require(parallel)) install.packages("parallel")
+Sys.setenv(MC_CORES=6)
 ###########define functions to be used########
 ###########define functions to be used########
 ###########define functions to be used########
@@ -147,7 +148,7 @@ myTree<-drop.tip(myTree,myTree$tip.labe[!myTree$tip.labe %in% habs$Fernandez_Vrb
 
 #load the list of all the desired filenames
 filesToDo<-as.character(read.table("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/simFilesToWrite.txt",header=F)[,1])
-#filesToDo<-filesToDo[c(1:2,18,20:21)]
+#filesToDo<-"BrownianMotionSimResults_fixedS_highR_DontCorrectBodySize.txt"
 
 fileCounter<-0
 # loop through each file and do the analysis
@@ -159,7 +160,7 @@ lapply(filesToDo,FUN=function(theFile)
   myData<-source(parameters[["datafile"]])[[1]]
   
   # #code to resimulate chars if need be
-  # myData<-lapply(1:10000,FUN=function(x){
+  # myData<-mclapply(1:10000,FUN=function(x){
   #   r<-0
   #   s<-1
   #   measurements<-simulateData(r,s)
@@ -170,7 +171,7 @@ lapply(filesToDo,FUN=function(theFile)
   
   nSims<-2000
   
-  results<-lapply(1:nSims,FUN=function(DFAcounter){
+  results<-mclapply(1:nSims,FUN=function(DFAcounter){
     
     vars<-sample(x=1:length(myData),size=sample(7:12,1),replace=FALSE)
     

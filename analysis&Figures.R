@@ -5,6 +5,10 @@ require(stringr)
 require(scales)
 require(xtable)
 require(gridExtra)
+require(parallel)
+
+#environmental variable for number of cores to use when doing parallel
+Sys.setenv(MC_CORES=4)
 
 nice<-function(x,places=2){round(x,places)}
 
@@ -205,17 +209,35 @@ doTheWholeShebang<-function(theFile){
   #bind it up
   allRESULTS<-do.call(rbind,allRESULTS)
   allRESULTS$isCrossvalidated<-as.character(allRESULTS$isCrossvalidated)
-  toWrite<-print(xtable(allRESULTS,digits=4,),type="html")
-  writeLines(toWrite,con=paste0("~/Desktop/",str_split(inputFiles[theFile],".txt")[[1]][1],".html"))
+  #toWrite<-print(xtable(allRESULTS,digits=4,),type="html")
+  #writeLines(toWrite,con=paste0("~/Desktop/",str_split(inputFiles[theFile],".txt")[[1]][1],".html"))
+  write.table(x=allRESULTS,file=paste0("~/Desktop/",str_split(inputFiles[theFile],".txt")[[1]][1],".txt"),row.names=FALSE)
   
 }
 
 #debug(doTheWholeShebang)
 #doTheWholeShebang(2)
-lapply(1:length(inputFiles),FUN=doTheWholeShebang)
+mclapply(1:length(inputFiles),mc.cores=4,FUN=doTheWholeShebang)
 
+summarizeResults<-TRUE
+if(summarizeResults) {
+  temporaryFILES<-list.files("~/Desktop/","BrownianMotionSim",full.names=TRUE)
+  toWrite<-mclapply(temporaryFILES,FUN=function(x) read.table(x,header=TRUE))
+  toWrite<-do.call(rbind,toWrite)
+  write.table(toWrite,file="SimulationResults.txt",row.names=FALSE,sep="\t")
+  #deletes all the temporary files
+  lapply(temporaryFILES,unlink)
+}
 
-temporaryFILES<-list.files("~/Desktop",".html",full.names=TRUE)
-toWrite<-lapply(temporaryFILES,FUN=function(x) readLines(x,-1))
-write(unlist(toWrite),"~/Desktop/output.html")
-lapply(temporaryFILES,unlink)
+rez<-read.table("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/SimulationResults.txt",header=TRUE,sep="\t")
+#use ddply to create the new table3
+ddply(rez,
+      .variables=.(simGroup,isRandomizedHabs),
+      .fun=summarize,
+          ##additional args to summarize 
+          Percent_DFA_significant=round(mean(proportionOfDFAsSignificant)*100,2),
+          IsCrossValidated = paste(isCrossvalidated,collapse=","),
+          mean_percent_correct_classifications=paste(round(meanDFASuccessRate,2),collapse=","),
+          PGLS_Type_I_error_rate=round(countSigPGLS[2]*100,2),
+          PGLS_Type_I_error_rate_FDR=round(countSigPGLSfdr[2]*100,2)
+      )
