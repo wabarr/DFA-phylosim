@@ -221,14 +221,25 @@ theData<-mclapply(theFiles,function(x) {
                                         })
 
 theData<-do.call(rbind,theData)
-boxplot_SuccessByR_all<-qplot(nvars,dfaSuccessRate,data=subset(theData,BMCorrectionOrNot="CorrectBodySize"),geom="boxplot",fill=isCrossvalidated,group=interaction(nvars,isCrossvalidated),xlab="# of characters",ylab="Classification Success Rate",facets=~BM_correlation,outlier.size=0) + 
+theData$isCrossvalidated<-factor(theData$isCrossvalidated)
+levels(theData$isCrossvalidated)<-c("Resubstitution","Crossvalidation")
+
+theData$BM_correlation<-factor(theData$BM_correlation)
+levels(theData$BM_correlation)<-c("r = 0 (phylo)  ","high r   ","low r   ","r = 0 (no phylo)")
+
+
+boxplot_SuccessByR_all<-qplot(nvars,dfaSuccessRate*100,data=subset(theData,BMCorrectionOrNot="CorrectBodySize"),geom="boxplot",fill=isCrossvalidated,group=interaction(nvars,isCrossvalidated),xlab="# of characters",ylab="Classification Success Rate (%)",facets=~BM_correlation,outlier.size=0) + 
   scale_fill_grey(start = 0.9, end = 0.5) + 
-  labs(fill="Crossvalidated") + 
+  labs(fill="Validation") + 
   guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
   theme_bw(20) + 
-  theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7))
-ggsave(boxplot_SuccessByR_all,"~/Dropbox/WAB Dissertation/Chapter 2 - Methods/boxplotsSuccessByR.pdf",boxplot_SuccessByR,height=9.15,width=14,units="in")
+  theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7)) +
+  geom_hline(y=25,lty=2)
 
+setEPS()
+postscript("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/boxplotsSuccessByR.eps",width=14,height=9.15)
+print(boxplot_SuccessByR_all)
+dev.off()
 #   boxplot_SuccessByR<-qplot(nvars,dfaSuccessRate,data=subset(shortForm, wilkes<.05),geom="boxplot",group=interaction(nvars,BMCorrectionOrNot),xlab="# of characters",ylab="Classification Success Rate",fill=BMCorrectionOrNot,facets=~BM_correlation,outlier.size=0) + 
 #     scale_y_continuous(labels=percent) + 
 #     scale_fill_grey(start = 0.9, end = 0.5) + 
