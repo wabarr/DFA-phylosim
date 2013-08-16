@@ -113,28 +113,29 @@ myTree<-drop.tip(myTree,myTree$tip.labe[!myTree$tip.labe %in% habs$Fernandez_Vrb
 ############PLOTS################
 ############PLOTS################
 ############PLOTS################
-#   #plot the phylogeny used
-#   row.names(habs)<-habs$Fernandez_Vrba_2005_Name
-#   habsForPlot<-habs[myTree$tip.labe,]
-#   
-#   colz<-c("grey20","grey45","grey70","grey90")
-#   lineColz<-rep(NA,length(myTree$edge))
-#   lineColz[myTree$edge[,2]<=nrow(habsForPlot)]<-colz[habsForPlot$Hab] #update lineColz vector only for tip edges (which by definition connect to a node number <= nrow(habsForPlot))
-#   lineColz[is.na(lineColz)]<-1
-#   
-#   ltyz=c(1,3,3,1)
-#   lineTypes<-rep(NA,length(myTree$edge))
-#   lineTypes[myTree$edge[,2]<=nrow(habsForPlot)]<-ltyz[habsForPlot$Hab] #update ltyz vector only for tip edges (which by definition connect to a node number <= nrow(habsForPlot))
-#   lineTypes[is.na(lineTypes)]<-1
-# 
-# #uncomment to save as eps
-# setEPS()
-# postscript("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/phylogenyUSED_4habitats.eps",width=10,height=10)
-# par(cex=1)
-# plot(myTree,edge.width=5,edge.col=lineColz,cex=1.1,show.tip.label=T,edge.lty=lineTypes,label.offset=.15)
-# par(xpd=NA)#setting xpd=NA shuts off truncation in the margins
-# legend(3,-2,horiz=T,legend=levels(habs$Hab),lwd=5,lty=ltyz,cex=1,seg.len=2.5,col=colz,title.col=1,title="Habitat")
-# dev.off()
+  #plot the phylogeny used
+  row.names(habs)<-habs$Fernandez_Vrba_2005_Name
+  habsForPlot<-habs[myTree$tip.labe,]
+  
+  colz<-c("grey20","grey45","grey70","grey90")
+  lineColz<-rep(NA,length(myTree$edge))
+  lineColz[myTree$edge[,2]<=nrow(habsForPlot)]<-colz[habsForPlot$Hab] #update lineColz vector only for tip edges (which by definition connect to a node number <= nrow(habsForPlot))
+  lineColz[is.na(lineColz)]<-1
+  
+  ltyz=c(1,3,3,1)
+  lineTypes<-rep(NA,length(myTree$edge))
+  lineTypes[myTree$edge[,2]<=nrow(habsForPlot)]<-ltyz[habsForPlot$Hab] #update ltyz vector only for tip edges (which by definition connect to a node number <= nrow(habsForPlot))
+  lineTypes[is.na(lineTypes)]<-1
+
+#uncomment to save as eps
+setEPS()
+postscript("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/phylogenyUSED_4habitats.eps",width=10,height=10)
+plot(myTree,edge.width=5,edge.col=lineColz,cex=1.1,show.tip.label=T,edge.lty=lineTypes,label.offset=.15,main="Bovid Phylogeny Used In This Study")
+par(cex=1.4)
+title(main="Phylogeny Used in this Study")
+par(xpd=NA)#setting xpd=NA shuts off truncation in the margins
+legend(-1.5,-1,horiz=T,legend=levels(habs$Hab),lwd=5,lty=ltyz,cex=1,seg.len=2.5,col=colz,title.col=1,title="Habitat")
+dev.off()
 #end phylogeny plot
 ############END PLOTS################
 ############END PLOTS################
