@@ -208,38 +208,38 @@ ddply(rez,
 ####################################PLOTS################################
 ####################################PLOTS################################
 
-theFiles<-list.files("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/","BrownianMotionSim",full.names=TRUE)
-theData<-mclapply(theFiles,function(x) {
-                                        TEMP<-read.table(x,header=TRUE,sep="\t")
-                                        TEMP$simGroup<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=x,pattern="_")[[1]][3:4],collapse="-")),nrow(TEMP))
-                                        TEMP$isCrossvalidated<-length(grep("CROSSVALIDATED",paste0(str_split(string=x,pattern="_")[[1]])))>0
-                                        TEMP$isRandomizedHabs<-length(grep("RANDOMIZEDHABITATS",paste0(str_split(string=x,pattern="_")[[1]])))>0
-                                        TEMP$BMCorrectionOrNot<-str_split(TEMP$simGroup[1],pattern="-")[[1]][2]
-                                        TEMP$BM_correlation<-str_split(TEMP$simGroup[1],pattern="-")[[1]][1]
-                                        
-                                        if(str_split(TEMP$simGroup[1],pattern="-")[[1]][2]=="CorrectBodySize" && TEMP$isRandomizedHabs==FALSE) {return(TEMP)}
-                                        })
-
-theData<-do.call(rbind,theData)
-theData$isCrossvalidated<-factor(theData$isCrossvalidated)
-levels(theData$isCrossvalidated)<-c("Resubstitution","Crossvalidation")
-
-theData$BM_correlation<-factor(theData$BM_correlation)
-levels(theData$BM_correlation)<-c("r = 0 (phylo)  ","high r   ","low r   ","r = 0 (no phylo)")
-
-
-boxplot_SuccessByR_all<-qplot(nvars,dfaSuccessRate*100,data=subset(theData,BMCorrectionOrNot="CorrectBodySize"),geom="boxplot",fill=isCrossvalidated,group=interaction(nvars,isCrossvalidated),xlab="# of characters",ylab="Classification Success Rate (%)",facets=~BM_correlation,outlier.size=0) + 
-  scale_fill_grey(start = 0.9, end = 0.5) + 
-  labs(fill="Validation",title="DFA success by number of characters\nwith size-corrected data, actual habitats") + 
-  guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
-  theme_bw(20) + 
-  theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7)) +
-  geom_hline(y=25,lty=2)
-
-setEPS()
-postscript("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/boxplotsSuccessByR.eps",width=14,height=9.15)
-print(boxplot_SuccessByR_all)
-dev.off()
+# theFiles<-list.files("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/","BrownianMotionSim",full.names=TRUE)
+# theData<-mclapply(theFiles,function(x) {
+#                                         TEMP<-read.table(x,header=TRUE,sep="\t")
+#                                         TEMP$simGroup<-rep(gsub(pattern=".txt",replacement="",paste0(str_split(string=x,pattern="_")[[1]][3:4],collapse="-")),nrow(TEMP))
+#                                         TEMP$isCrossvalidated<-length(grep("CROSSVALIDATED",paste0(str_split(string=x,pattern="_")[[1]])))>0
+#                                         TEMP$isRandomizedHabs<-length(grep("RANDOMIZEDHABITATS",paste0(str_split(string=x,pattern="_")[[1]])))>0
+#                                         TEMP$BMCorrectionOrNot<-str_split(TEMP$simGroup[1],pattern="-")[[1]][2]
+#                                         TEMP$BM_correlation<-str_split(TEMP$simGroup[1],pattern="-")[[1]][1]
+#                                         
+#                                         if(str_split(TEMP$simGroup[1],pattern="-")[[1]][2]=="CorrectBodySize" && TEMP$isRandomizedHabs==FALSE) {return(TEMP)}
+#                                         })
+# 
+# theData<-do.call(rbind,theData)
+# theData$isCrossvalidated<-factor(theData$isCrossvalidated)
+# levels(theData$isCrossvalidated)<-c("Resubstitution","Crossvalidation")
+# 
+# theData$BM_correlation<-factor(theData$BM_correlation)
+# levels(theData$BM_correlation)<-c("r = 0 (phylo)  ","high r   ","low r   ","r = 0 (no phylo)")
+# 
+# 
+# boxplot_SuccessByR_all<-qplot(nvars,dfaSuccessRate*100,data=subset(theData,BMCorrectionOrNot="CorrectBodySize"),geom="boxplot",fill=isCrossvalidated,group=interaction(nvars,isCrossvalidated),xlab="# of characters",ylab="Classification Success Rate (%)",facets=~BM_correlation,outlier.size=0) + 
+#   scale_fill_grey(start = 0.9, end = 0.5) + 
+#   labs(fill="Validation",title="DFA success by number of characters\nwith size-corrected data, actual habitats") + 
+#   guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
+#   theme_bw(20) + 
+#   theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7)) +
+#   geom_hline(y=25,lty=2)
+# 
+# setEPS()
+# postscript("~/Dropbox/WAB Dissertation/Chapter 2 - Methods/boxplotsSuccessByR.eps",width=14,height=9.15)
+# print(boxplot_SuccessByR_all)
+# dev.off()
 #   boxplot_SuccessByR<-qplot(nvars,dfaSuccessRate,data=subset(shortForm, wilkes<.05),geom="boxplot",group=interaction(nvars,BMCorrectionOrNot),xlab="# of characters",ylab="Classification Success Rate",fill=BMCorrectionOrNot,facets=~BM_correlation,outlier.size=0) + 
 #     scale_y_continuous(labels=percent) + 
 #     scale_fill_grey(start = 0.9, end = 0.5) + 
@@ -277,7 +277,7 @@ levels(rez$isRandomizedHabs)<-c("Actual Habitats","Randomized Habitats")
 
 DFAresults<-ggplot(data=rez,aes(x=proportionOfDFAsSignificant*100,y=meanDFASuccessRate,color=Dataset,shape=Dataset)) + 
     geom_point(size=7) + 
-    facet_grid(facets=isCrossvalidated~isRandomizedHabs) + 
+    facet_grid(facets=isRandomizedHabs~isCrossvalidated) + 
     theme_bw(20) + 
     scale_color_grey(start=.8,end=.2) + 
     scale_shape_manual(values=16:19) +
