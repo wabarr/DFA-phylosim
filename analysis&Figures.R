@@ -230,7 +230,7 @@ levels(theData$BM_correlation)<-c("r = 0 (phylo)  ","high r   ","low r   ","r = 
 
 boxplot_SuccessByR_all<-qplot(nvars,dfaSuccessRate*100,data=subset(theData,BMCorrectionOrNot="CorrectBodySize"),geom="boxplot",fill=isCrossvalidated,group=interaction(nvars,isCrossvalidated),xlab="# of characters",ylab="Classification Success Rate (%)",facets=~BM_correlation,outlier.size=0) + 
   scale_fill_grey(start = 0.9, end = 0.5) + 
-  labs(fill="Validation",title="DFA results by dataset and validation method") + 
+  labs(fill="Validation",title="DFA success by number of characters\nwith size-corrected data, actual habitats") + 
   guides(fill = guide_legend(keywidth = 1, keyheight = 3)) + 
   theme_bw(20) + 
   theme(legend.position="bottom",panel.grid.minor=element_blank(),panel.grid.major=element_line(size=.7)) +
