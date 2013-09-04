@@ -122,7 +122,7 @@ myTree<-drop.tip(myTree,myTree$tip.labe[!myTree$tip.labe %in% habs$Fernandez_Vrb
   lineColz[myTree$edge[,2]<=nrow(habsForPlot)]<-colz[habsForPlot$Hab] #update lineColz vector only for tip edges (which by definition connect to a node number <= nrow(habsForPlot))
   lineColz[is.na(lineColz)]<-1
   
-  ltyz=c(1,3,3,1)
+  ltyz=c(1,3,4,1)
   lineTypes<-rep(NA,length(myTree$edge))
   lineTypes[myTree$edge[,2]<=nrow(habsForPlot)]<-ltyz[habsForPlot$Hab] #update ltyz vector only for tip edges (which by definition connect to a node number <= nrow(habsForPlot))
   lineTypes[is.na(lineTypes)]<-1
