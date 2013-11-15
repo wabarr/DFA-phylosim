@@ -315,24 +315,24 @@ zeroTree <- transform(myTree,"lambda",0)
 
 
 ####with Actual hab - single parameter model
-lambdaActualData<-fitDiscrete(multi2di(myTree),habs,transform="lambda", model="ER")
-lambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),habs,transform="lambda", model="ER")
+lambdaActualData<-fitDiscrete(multi2di(myTree),habs, model="ER")
+lambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),habs, model="ER")
 pchisq(2 * (lambdaActualData$opt$lnL - lambdaNoPhyloSignal$opt$lnL),1,lower.tail=FALSE)
 
 #####with random habs
 randomHabs <- sample(unique(habs),length(habs),replace=TRUE)
 names(randomHabs) <- names(habs)
-lambdaActualData<-fitDiscrete(multi2di(myTree),randomHabs,transform="lambda", model="ER")
-lambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),randomHabs,transform="lambda", model="ER")
+lambdaActualData<-fitDiscrete(multi2di(myTree),randomHabs, model="ER")
+lambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),randomHabs, model="ER")
 pchisq(2 * (lambdaActualData$opt$lnL - lambdaNoPhyloSignal$opt$lnL),1,lower.tail=FALSE)
 
 
 ####with Actual hab - symetric model
-ALTlambdaActualData<-fitDiscrete(multi2di(myTree),habs,transform="lambda",model="SYM")
-ALTlambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),habs,transform="lambda",model="SYM")
+ALTlambdaActualData<-fitDiscrete(multi2di(myTree),habs, model="SYM")
+ALTlambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),habs,model="SYM")
 pchisq(2 * (ALTlambdaActualData$opt$lnL - ALTlambdaNoPhyloSignal$opt$lnL),1,lower.tail=FALSE)
 
-####with Actual hab - symetric model
-ALT2lambdaActualData<-fitDiscrete(multi2di(myTree),habs,transform="lambda",model="meristic")
-ALT2lambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),habs,transform="lambda",model="meristic")
+####with Actual hab - meristic model
+ALT2lambdaActualData<-fitDiscrete(multi2di(myTree),habs,model="meristic")
+ALT2lambdaNoPhyloSignal<-fitDiscrete(multi2di(zeroTree),habs,model="meristic")
 pchisq(2 * (ALT2lambdaActualData$opt$lnL - ALT2lambdaNoPhyloSignal$opt$lnL),1,lower.tail=FALSE)
